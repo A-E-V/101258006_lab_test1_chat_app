@@ -1,0 +1,61 @@
+<!--Adrian Vargas - 101258006 -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Lab Test 1 Index">
+    <meta name="author" content="Adrian Vargas - 101258006">
+    <link rel="icon" href="../../favicon.ico">
+    <link rel="canonical" href="https://getbootstrap.com/docs/3.4/examples/signin/">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <title>Chatty: Sign-In</title>
+  </head>
+
+  <body>
+    
+    <div class="container">
+      <h1>Welcome to Chatty!</h1>
+      <hr>
+      <form class="form-signin">
+        <h2 class="form-signin-heading">Sign-In Below</h2>
+        <p id="error" style="color: red;"></p>
+        <label for="username" class="sr-only">Username</label>
+        <input type="username" id="username" class="form-control" placeholder="Username" required autofocus>
+        <label for="password" class="sr-only">Password</label>
+        <input type="password" id="password" class="form-control" placeholder="Password" required>
+      
+        <button id="signin" class="btn btn-lg btn-primary btn-block">Sign in</button>
+        <hr>
+        <a href="register.html"> Don't have an account? Register through here.</a>
+      </form>
+      <script>
+        let socket = io();
+        
+        $(function(){
+          $("#signin").click(()=>{
+            event.preventDefault()
+            console.log("validating...")
+            validateUser({username: $("#username").val(), password: $("#password").val()});
+          })
+        })
+  
+        function validateUser(user){
+          $.post('http://localhost:3000/signin', user)
+        }
+
+        socket.on("loginAccept", (user) => {
+          window.location.href = `chat.html?user=${user}` 
+        });
+
+        socket.on('loginFailed', (message) => {
+          $("#error").append(`${message}`)
+        })
+     </script>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,172 @@
+<!--Adrian Vargas - 101258006 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lab Test 1 Chat">
+    <meta name="author" content="Adrian Vargas - 101258006">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <title>Chatty: Chat</title>
+    <link href="./chat.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+    <div class="row clearfix">
+        <div class="col-lg-12">
+            <div class="card chat-app">
+
+                <!-- Chat Rooms -->
+                <div id="plist" class="people-list">
+                    <ul class="list-unstyled chat-list mt-2 mb-0" style="background-color: #1d8ecd;">
+                        <li id="gamingRoom" class="clearfix">
+                            
+                            <div class="about">
+                                <div class="name">Gaming</div>                                           
+                            </div>
+                            <span id="leaveGaming" class="out">X</span>
+                        </li>
+                        <li id="studyRoom" class="clearfix">
+                            <div  class="about">
+                                <div class="name">Study</div>                                           
+                            </div>
+                            <span id="leaveStudy" class="out">X</span>
+                        </li>
+                        <li id="loungeRoom" class="clearfix">
+                            <div  class="about">
+                                <div class="name">Lounge</div>                                           
+                            </div>
+                            <span id="leaveLounge" class="out">X</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Chat Box -->
+                <div class="chat">
+
+                    <div class="chat-header clearfix">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="chat-about">
+                                    <h6 id="welcome" class="m-b-0" style="font-size: 18px;">Welcome to Emesen Chat!</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-history">
+                        <ul id="messages" class="m-b-0">  
+                        </ul>
+                    </div>
+
+                    <div class="chat-message clearfix">
+                        <div class="input-group mb-0">
+                            <div id="send" class="input-group-prepend">
+                                <span class="input-group-text"><i class="fa fa-send"></i></span>
+                            </div>
+                            <input id="message" style="width: 100%;" type="text" class="form-control" placeholder="Enter text here...">                                    
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        let socket = io()        
+        let room = 'gaming'
+        let allRooms = ""
+
+        $(function () {
+            $("#gamingRoom").click(()=>{
+                $("#messages").empty()
+                room = "gaming"
+                getMessagesByRoom("gaming")
+            })
+        })
+        $(function () {
+            $("#leaveGaming").click(()=>{
+                socket.emit('leave', "gaming")
+                $("#gamingRoom").empty()
+            })
+        })
+        $(function () {
+            $("#loungeRoom").click(()=>{
+                $("#messages").empty()
+                room = "lounge"
+                getMessagesByRoom("lounge")
+            })
+        })
+        $(function () {
+            $("#leaveLounge").click(()=>{
+                socket.emit('leave', "gaming")
+                $("#loungeRoom").empty()
+            })
+        })
+        $(function () {           
+            $("#studyRoom").click(()=>{
+                $("#messages").empty()
+                room = "study"
+                getMessagesByRoom("study")
+            })
+        })
+        $(function () {
+            $("#leaveStudy").click(()=>{
+                socket.emit('leave', "study")
+                $("#studyRoom").empty()
+            })
+        })
+        $(function () {
+            $("#send").click(()=>{
+                sendMessage({sender: getName(), message: $("#message").val(), room: room});
+            })
+        })
+
+        function sendMessage(message){
+            $.post('http://localhost:3000/messages', message)
+            $("#message").val("")
+        }
+
+        function getName() {
+            return new URLSearchParams(window.location.search).get('user')
+        }
+
+        function getMessagesByRoom(room){
+            $("#welcome").html(getName())
+            $.get('http://localhost:3000/messages/' + room, (data) => {
+                data.forEach(addMessage);
+            })
+        }
+
+        function addMessage(message){
+            $("#messages").append(`<li class="clearfix">
+                                    <div class="name">${message.sender}</div>
+                                    <div class="message-data">
+                                        <span class="message-data-time">${message.created}</span>
+                                    </div>
+                                    <div class="message my-message">${message.message}</div>                                    
+                                </li>`)
+        }
+
+
+        socket.on('message', addMessage)
+
+        socket.on('closed', (rooms) => {
+            console.log("now closed.")
+            Object.values(rooms).forEach((room)=> {
+                console.log(room)
+            })
+        })
+
+        socket.on('rooms', (rooms) => {
+            allRooms = rooms
+        })
+
+        
+    </script> 
+</body>
+</html>
